@@ -5,6 +5,7 @@ import bcrypt from "bcrypt"
 import { OtpModel } from "../models/OTP"
 import { generateOTP } from "../utils/otp"
 import { sendOTPEmail } from "../utils/mailer"
+import { signInAccessToken, signInRefreshToken } from "../utils/token"
 dotenv.config()
 
 
@@ -106,3 +107,43 @@ export const register = async (req: Request, res: Response) =>{
         res.status(500).json({message: err?.message})
     }
 }
+
+export const logIn = async (req: Request, res: Response) =>{
+    const {email, password} = req.body
+
+    if(!email || !password){
+        return res.status(400).json({logIn: false, message:""})
+    }
+
+    try{
+        const existingUser = await User.findOne({email})
+        if(!existingUser){
+            return res.status(400).json({logIn: false, message:"All fields are required"})
+        }
+
+        const valid = await bcrypt.compare(password,existingUser.password)
+        if(!valid){
+            return res.status(400).json({logIn: false, message:"Invalid credentials"})
+        }
+
+        const accessToken = signInAccessToken(existingUser)
+        const refreshToken = signInRefreshToken(existingUser)
+
+        res.status(201).json({
+            ligIn: true,
+            message: "LogIn success",
+            data :{
+                email: existingUser.email,
+                roles: existingUser.roles,
+                accessToken,
+                refreshToken
+            }
+        })
+
+
+    }catch(err: any){
+        return res.status(500).json({logIn: false, message:"Sever error",error: err})
+    }
+
+}
+

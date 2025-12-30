@@ -6,7 +6,7 @@ dotenv.config()
 
 const JWT_SECRET = process.env.JWT_SECRET as string
 
-export const signAccessToken = (user: IUser): string =>{
+export const signInAccessToken = (user: IUser): string =>{
     return jwt.sign(
         {
             sub: user._id.toString(),
