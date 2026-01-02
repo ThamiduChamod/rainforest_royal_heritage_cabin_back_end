@@ -55,7 +55,11 @@ export const verifyOTP = async (req: Request,  res: Response) =>{
         }
 
         // OTP correct → delete it
-        await OtpModel.deleteMany({ email:email });
+        // await OtpModel.deleteMany({ email:email });
+        await OtpModel.findOneAndUpdate(
+            {email,otp},
+            {isValid: true}
+        )
         res.json({  isValid: true, message: "OTP verified successfully" });
   
     } catch (error) {
@@ -84,6 +88,18 @@ export const register = async (req: Request, res: Response) =>{
             return res.status(400).json({message: "Email already register"})
         }
 
+        // if(role === Role.ADMIN ||role === Role.AUTHOR){
+        //     return res.status(400).json({message:"Invalid Role"})
+        // }
+        const isValidEmail = await OtpModel.findOne({email:registerEmail})
+        if(!isValidEmail || !isValidEmail.isValid){
+            return res.status(400).json({message:"Wrong Email"})
+        }
+
+        // OTP correct → delete it
+        await OtpModel.deleteMany({ email:registerEmail });
+
+
         const hashedPassword = await bcrypt.hash(registerPassword, 10)
 
         const newUser = new User({
@@ -97,8 +113,8 @@ export const register = async (req: Request, res: Response) =>{
         await newUser.save()
 
         res.status(201).json({
-            message: role === Role.AUTHOR?
-                "Author registered successfully":"User registered successfully",
+            message: role === Role.USER?
+                "User registered successfully":"Admin registered successfully",
             data:{
                 id: newUser._id,
                 email: newUser.email,
@@ -132,7 +148,7 @@ export const logIn = async (req: Request, res: Response) =>{
         const refreshToken = signInRefreshToken(existingUser)
 
         res.status(201).json({
-            ligIn: true,
+            logIn: true,
             message: "LogIn success",
             data :{
                 email: existingUser.email,
