@@ -5,6 +5,7 @@ import mongoose from "mongoose"
 import authRouter from "./routes/auth.routers"
 import adminRouter from './routes/admin.routers'
 import postRouter from './routes/post.routers'
+import bookingRouter from "./routes/booking.routers"
 dotenv.config()
 
 const SEVER_PORT = process.env.SERVER_PORT
@@ -23,6 +24,7 @@ app.use(
 app.use("/api/v1/auth",authRouter)
 app.use("/api/v1/ADMIN",adminRouter)
 app.use("/api/v1/Post",postRouter)
+app.use("/api/v1/book",bookingRouter)
 
 mongoose
     .connect(MONGO_URI)
