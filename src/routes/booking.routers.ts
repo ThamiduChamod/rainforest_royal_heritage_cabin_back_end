@@ -2,7 +2,7 @@ import { Router } from "express";
 import { authenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/role";
 import { Role } from "../models/User";
-import { bookRoom, getMyBooking } from "../controllers/booking.controller";
+import { bookPackage, bookRoom, getMyBooking, getMyPackageBooking } from "../controllers/booking.controller";
 
 const route = Router()
 
@@ -18,5 +18,19 @@ route.get(
     authenticate,
     requireRole([Role.ADMIN, Role.AUTHOR, Role.USER]),
     getMyBooking
+)
+
+route.post(
+    "/packageBook",
+    authenticate,
+    requireRole([Role.ADMIN, Role.AUTHOR, Role.USER]),
+    bookPackage
+)
+
+route.get(
+    "/getPackageBookings",
+    authenticate,
+    requireRole([Role.ADMIN, Role.AUTHOR, Role.USER]),
+    getMyPackageBooking
 )
 export default route
