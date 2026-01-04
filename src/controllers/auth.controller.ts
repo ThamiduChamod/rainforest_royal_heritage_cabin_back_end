@@ -1,11 +1,12 @@
 import { Request, Response } from "express"
 import dotenv from 'dotenv'
-import { Role, User } from "../models/User"
+import { IUser, Role, User } from "../models/User"
 import bcrypt from "bcrypt"
 import { OtpModel } from "../models/OTP"
 import { sendOtp, verifyOtp } from "../utils/otp"
 import { signInAccessToken, signInRefreshToken } from "../utils/token"
 import jwt from "jsonwebtoken"
+import { AuthRequest } from "../middleware/auth"
 dotenv.config()
 
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string
@@ -175,4 +176,27 @@ export const handelRefreshToken = async (req: Request, res: Response) =>{
         res.status(403).json({message: "Invalid or expire token"})
     }
 
+}
+
+export const getMyDetails = async (req: AuthRequest, res: Response) => {
+  // const roles = req.user.roles
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized" })
+  }
+  const userId = req.user.sub
+  const user =
+    ((await User.findById(userId).select("-password")) as IUser) || null
+
+  if (!user) {
+    return res.status(404).json({
+      message: "User not found"
+    })
+  }
+
+  const { firstName, lastName, email, roles } = user
+
+  res.status(200).json({
+    message: "Ok",
+    data: { firstName, lastName, email, roles }
+  })
 }
