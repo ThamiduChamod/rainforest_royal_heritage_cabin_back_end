@@ -14,7 +14,7 @@ export const signInAccessToken = (user: IUser): string =>{
         },
         JWT_SECRET,
         {
-            expiresIn: "30m"
+            expiresIn: "1d"
         }
     )
 }
