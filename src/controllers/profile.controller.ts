@@ -80,3 +80,22 @@ export const updatePhoto = async (req:AuthRequest, res: Response) =>{
             res.status(400).json({message:"image upload fail"})
         }
 }
+
+export const getMyProfile = async (req: AuthRequest, res: Response)=>{
+    if(!req.user) {
+        return res.status(401).json({isSave: false,message:"Unauthorized"})
+    }
+    console.log("run 1")
+    try {
+        const profile = await ProfileModel.findOne({user:req.user.sub})
+        console.log("run 2")
+        if(!profile){
+            res.status(400).json({message:"can't find profile"})
+        }
+        console.log("run 3")
+        res.status(200).json({message:"find profile", data:profile})
+    } catch (error) {
+        console.log(error)
+        res.status(400).json({message:"can't find profile"})
+    }
+}
