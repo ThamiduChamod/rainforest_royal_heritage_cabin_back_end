@@ -88,3 +88,61 @@ export const deleteRoom = async (req:AuthRequest, res: Response) =>{
         res.status(500).json({isDelete: true,message:"can't delete"})
     }
 } 
+
+export const updateRoom = async (req:AuthRequest,  res: Response) =>{
+    
+    try {
+        
+        const { id, type, price, pax, bedType,  count } = req.body;
+
+        // 2.findById(id) ලෙස කෙලින්ම ID එක දිය යුතුයි (Object එකක් ලෙස නොවේ)
+        const exitRoom = await RoomModel.findById(id);
+
+        if (!exitRoom) {
+            return res.status(404).json({
+                isUpdate: false,
+                message: "Room not found"
+            });
+        }
+
+        
+        if (req.file) {
+            const result: any = await new Promise((resolve, reject) => {
+                const upload_stream = cloudinary.uploader.upload_stream(
+                    { folder: "imageRoom" },
+                    (error, result) => {
+                        if (error) return reject(error);
+                        resolve(result);
+                    }
+                );
+                upload_stream.end(req.file?.buffer);
+            });
+            exitRoom.image = result.secure_url;
+        }
+
+        exitRoom.type = type || exitRoom.type;
+        exitRoom.price = price || exitRoom.price;
+        exitRoom.pax = pax || exitRoom.pax;
+        exitRoom.bedType = bedType || exitRoom.bedType;
+        exitRoom.count = count || exitRoom.count;
+
+        // Amenities Array එකක් ලෙස එන්නේ නම් පමණක් Update කරන්න
+        // සමහර විට Frontend එකෙන් JSON string එකක් ලෙස එවන්නේ නම් JSON.parse(amenities) අවශ්‍ය වේ
+        
+        
+        await exitRoom.save();
+
+        return res.status(200).json({
+            isUpdate: true,
+            message: "Room updated successfully"
+        });
+
+    } catch (error) {
+        console.error("Update Error:", error);
+        return res.status(500).json({
+            isUpdate: false,
+            message: "Room update fail"
+        });
+    }
+}
+
